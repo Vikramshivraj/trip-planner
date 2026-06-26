@@ -214,6 +214,10 @@ const AddExpense = () => {
               Shopping
             </option>
 
+            <option value="Other">
+              Other
+            </option>
+
           </select>
 
           {/* Amount */}

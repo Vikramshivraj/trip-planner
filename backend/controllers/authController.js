@@ -5,7 +5,6 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // check user exists
     const checkQuery = "SELECT * FROM users WHERE email = ?";
 
     db.query(checkQuery, [email], async (err, result) => {
@@ -19,10 +18,8 @@ const registerUser = async (req, res) => {
         });
       }
 
-      // hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // insert user
       const insertQuery =
         "INSERT INTO users(name,email,password) VALUES(?,?,?)";
 
@@ -66,7 +63,6 @@ const loginUser = (req, res) => {
 
       const user = result[0];
 
-      // compare password
       const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
@@ -75,7 +71,6 @@ const loginUser = (req, res) => {
         });
       }
 
-      // create token
       const token = jwt.sign(
         {
           id: user.id,
