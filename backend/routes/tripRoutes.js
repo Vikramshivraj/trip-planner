@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const { createTrip , getTrips, addExpense,getTripAnalytics, deleteTrip,updateTrip,getTripExpenses } = require("../controllers/tripController");
+const { createTrip , getTrips, addExpense,getTripAnalytics, deleteTrip,updateTrip,getTripExpenses,getTotalExpenses } = require("../controllers/tripController");
 
 const verifyToken = require("../middleware/authMiddleware");
 
@@ -19,5 +19,7 @@ router.delete("/:id",verifyToken,deleteTrip);
 router.put("/:id",verifyToken,updateTrip);
 
 router.get("/expenses/:id",verifyToken,getTripExpenses);
+
+router.get("/total-expenses",verifyToken,getTotalExpenses);
 
 module.exports = router;

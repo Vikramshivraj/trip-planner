@@ -5,6 +5,8 @@ const AddExpense = () => {
 
   const [trips, setTrips] = useState([]);
 
+  const [selectedTrip, setSelectedTrip] = useState(null);
+
   const [formData, setFormData] = useState({
     trip_id: "",
     category: "",
@@ -40,13 +42,34 @@ const AddExpense = () => {
       console.log(error);
 
     }
+
   };
 
   const handleChange = (e) => {
 
+    const { name, value } = e.target;
+
+    if (name === "trip_id") {
+
+      const currentTrip = trips.find(
+        (trip) => String(trip.id) === value
+      );
+
+      setSelectedTrip(currentTrip);
+
+      setFormData({
+        ...formData,
+        trip_id: value,
+        expense_date: "",
+      });
+
+      return;
+
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
 
   };
@@ -54,6 +77,35 @@ const AddExpense = () => {
   const handleAddExpense = async () => {
 
     try {
+
+      if (!selectedTrip) {
+
+        alert("Please select a trip");
+
+        return;
+
+      }
+
+      const startDate = new Date(selectedTrip.start_date)
+        .toISOString()
+        .slice(0, 10);
+
+      const endDate = new Date(selectedTrip.end_date)
+        .toISOString()
+        .slice(0, 10);
+
+      if (
+        formData.expense_date < startDate ||
+        formData.expense_date > endDate
+      ) {
+
+        alert(
+          `Expense date must be between ${startDate} and ${endDate}`
+        );
+
+        return;
+
+      }
 
       const token = localStorage.getItem("token");
 
@@ -69,16 +121,30 @@ const AddExpense = () => {
 
       alert(res.data.message);
 
+      setFormData({
+        trip_id: "",
+        category: "",
+        amount: "",
+        expense_date: "",
+      });
+
+      setSelectedTrip(null);
+
     } catch (error) {
 
       console.log(error);
 
-      alert("Failed To Add Expense");
+      alert(
+        error.response?.data?.message ||
+        "Failed To Add Expense"
+      );
 
     }
+
   };
 
   return (
+
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-zinc-900 flex items-center justify-center p-6">
 
       <div className="w-full max-w-2xl bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -96,6 +162,7 @@ const AddExpense = () => {
           {/* Trip Dropdown */}
           <select
             name="trip_id"
+            value={formData.trip_id}
             onChange={handleChange}
             className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white outline-none"
           >
@@ -122,6 +189,7 @@ const AddExpense = () => {
           {/* Category */}
           <select
             name="category"
+            value={formData.category}
             onChange={handleChange}
             className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white outline-none"
           >
@@ -153,14 +221,31 @@ const AddExpense = () => {
             type="number"
             name="amount"
             placeholder="Enter Amount"
+            value={formData.amount}
             onChange={handleChange}
             className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white outline-none"
           />
 
-          {/* Date */}
+          {/* Expense Date */}
           <input
             type="date"
             name="expense_date"
+            value={formData.expense_date}
+            min={
+              selectedTrip
+                ? new Date(selectedTrip.start_date)
+                    .toISOString()
+                    .slice(0, 10)
+                : ""
+            }
+            max={
+              selectedTrip
+                ? new Date(selectedTrip.end_date)
+                    .toISOString()
+                    .slice(0, 10)
+                : ""
+            }
+            disabled={!selectedTrip}
             onChange={handleChange}
             className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white outline-none"
           />
@@ -177,7 +262,9 @@ const AddExpense = () => {
       </div>
 
     </div>
+
   );
+
 };
 
 export default AddExpense;

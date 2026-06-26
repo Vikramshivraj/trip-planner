@@ -62,31 +62,134 @@ const getTrips = (req, res) => {
 };
 
 const addExpense = (req, res) => {
-  try {
-    const { trip_id, category, amount, expense_date } = req.body;
 
-    const query = `
-      INSERT INTO expenses
-      (trip_id, category, amount, expense_date)
-      VALUES (?, ?, ?, ?)
-    `;
+  try {
+
+    const {
+      trip_id,
+      category,
+      amount,
+      expense_date,
+    } = req.body;
+
+    // get trip dates
+    const tripQuery =
+      "SELECT start_date, end_date FROM trips WHERE id = ?";
 
     db.query(
-      query,
-      [trip_id, category, amount, expense_date],
-      (err, result) => {
+      tripQuery,
+      [trip_id],
+      (err, tripResult) => {
+
         if (err) {
           return res.status(500).json(err);
         }
 
-        res.status(201).json({
-          message: "Expense Added Successfully",
-        });
+        if (tripResult.length === 0) {
+
+          return res.status(404).json({
+            message: "Trip Not Found",
+          });
+
+        }
+
+        const trip = tripResult[0];
+
+        const expenseDate =
+          new Date(expense_date);
+
+        const startDate =
+          new Date(trip.start_date);
+
+        const endDate =
+          new Date(trip.end_date);
+
+        // validation
+        if (
+          expenseDate < startDate ||
+          expenseDate > endDate
+        ) {
+
+          return res.status(400).json({
+            message:
+              "Expense date must be within trip dates",
+          });
+
+        }
+
+        // add expense
+        const insertQuery = `
+          INSERT INTO expenses
+          (trip_id, category, amount, expense_date)
+          VALUES (?, ?, ?, ?)
+        `;
+
+        db.query(
+          insertQuery,
+          [
+            trip_id,
+            category,
+            amount,
+            expense_date,
+          ],
+          (err, result) => {
+
+            if (err) {
+
+              return res.status(500).json(err);
+
+            }
+
+            res.status(201).json({
+              message:
+                "Expense Added Successfully",
+            });
+
+          }
+        );
+
       }
     );
+
   } catch (error) {
+
     res.status(500).json(error);
+
   }
+
+};
+
+const getTotalExpenses = (req, res) => {
+
+  try {
+
+    const user_id = req.user.id;
+
+    const query = `
+      SELECT
+      IFNULL(SUM(expenses.amount), 0) AS totalExpenses
+      FROM expenses
+      JOIN trips
+      ON expenses.trip_id = trips.id
+      WHERE trips.user_id = ?
+    `;
+
+    db.query(query, [user_id], (err, result) => {
+
+      if (err) {
+        return res.status(500).json(err);
+      }
+
+      res.status(200).json(result[0]);
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json(error);
+
+  }
+
 };
 
 const getTripAnalytics = (req, res) => {
@@ -250,5 +353,6 @@ module.exports = {
   getTripAnalytics,
   deleteTrip,
   updateTrip,
-  getTripExpenses ,
+  getTripExpenses,
+  getTotalExpenses,
 };

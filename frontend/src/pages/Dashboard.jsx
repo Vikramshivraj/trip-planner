@@ -16,13 +16,16 @@ const Dashboard = () => {
 
   const [trips, setTrips] = useState([]);
 
+  const [totalExpenses, setTotalExpenses] = useState(0);
+
   const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
 
-    fetchTrips();
+  fetchTrips();
+  fetchTotalExpenses();
 
-  }, []);
+}, []);
 
   const fetchTrips = async () => {
 
@@ -47,6 +50,32 @@ const Dashboard = () => {
 
     }
   };
+  const fetchTotalExpenses = async () => {
+
+  try {
+
+    const token = localStorage.getItem("token");
+
+    const res = await API.get(
+      "/trips/total-expenses",
+      {
+        headers: {
+          authorization: token,
+        },
+      }
+    );
+
+    setTotalExpenses(
+      res.data.totalExpenses
+    );
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
    
 const handleDelete = async (id) => {
 
@@ -65,7 +94,8 @@ const handleDelete = async (id) => {
 
     alert(res.data.message);
 
-    fetchTrips();
+fetchTrips();
+fetchTotalExpenses();
 
   } catch (error) {
 
@@ -133,9 +163,6 @@ const handleUpdate = async (trip) => {
       acc + Number(trip.budget),
     0
   );
-
-  // demo expense
-  const totalExpenses = 32000;
 
   return (
     <div
@@ -341,11 +368,23 @@ const handleUpdate = async (trip) => {
 
   {/* Delete */}
   <button
-    onClick={() => handleDelete(trip.id)}
-    className="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-700"
-  >
-    Delete
-  </button>
+  onClick={() => {
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this trip?"
+    );
+
+    if (confirmDelete) {
+
+      handleDelete(trip.id);
+
+    }
+
+  }}
+  className="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-700"
+>
+  Delete
+</button>
 
 </div>
 

@@ -26,27 +26,18 @@ const CreateTrip = () => {
 
     try {
 
-      // validation
       const today = new Date();
 
       const start = new Date(formData.start_date);
 
       const end = new Date(formData.end_date);
 
-      // past date check
-      if (start < today.setHours(0,0,0,0)) {
-
-        alert("Start date cannot be in the past");
-
-        return;
-      }
-
-      // end date check
       if (end < start) {
 
         alert("End date cannot be before start date");
 
         return;
+
       }
 
       const token = localStorage.getItem("token");
@@ -63,6 +54,14 @@ const CreateTrip = () => {
 
       alert(res.data.message);
 
+      setFormData({
+        trip_name: "",
+        destination: "",
+        start_date: "",
+        end_date: "",
+        budget: "",
+      });
+
     } catch (error) {
 
       console.log(error);
@@ -70,6 +69,7 @@ const CreateTrip = () => {
       alert("Trip Creation Failed");
 
     }
+
   };
 
   return (
@@ -90,7 +90,6 @@ const CreateTrip = () => {
         }
       >
 
-        {/* Toggle */}
         <div className="flex justify-end mb-4">
 
           <button
@@ -118,11 +117,11 @@ const CreateTrip = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {/* Trip Name */}
           <input
             type="text"
             name="trip_name"
             placeholder="Trip Name"
+            value={formData.trip_name}
             onChange={handleChange}
             className={
               darkMode
@@ -131,11 +130,11 @@ const CreateTrip = () => {
             }
           />
 
-          {/* Destination */}
           <input
             type="text"
             name="destination"
             placeholder="Destination"
+            value={formData.destination}
             onChange={handleChange}
             className={
               darkMode
@@ -144,11 +143,10 @@ const CreateTrip = () => {
             }
           />
 
-          {/* Start Date */}
           <input
             type="date"
             name="start_date"
-            min={new Date().toISOString().split("T")[0]}
+            value={formData.start_date}
             onChange={handleChange}
             className={
               darkMode
@@ -157,10 +155,10 @@ const CreateTrip = () => {
             }
           />
 
-          {/* End Date */}
           <input
             type="date"
             name="end_date"
+            value={formData.end_date}
             onChange={handleChange}
             className={
               darkMode
@@ -169,11 +167,11 @@ const CreateTrip = () => {
             }
           />
 
-          {/* Budget */}
           <input
             type="number"
             name="budget"
             placeholder="Budget"
+            value={formData.budget}
             onChange={handleChange}
             className={
               darkMode
@@ -184,7 +182,6 @@ const CreateTrip = () => {
 
         </div>
 
-        {/* Button */}
         <button
           onClick={handleCreateTrip}
           className="w-full mt-8 bg-gradient-to-r from-purple-600 to-pink-500 hover:scale-[1.02] transition-all text-white p-4 rounded-xl font-semibold shadow-lg"
@@ -195,7 +192,9 @@ const CreateTrip = () => {
       </div>
 
     </div>
+
   );
+
 };
 
 export default CreateTrip;
