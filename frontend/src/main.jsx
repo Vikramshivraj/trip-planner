@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateTrip from "./pages/CreateTrip";
 import AddExpense from "./pages/AddExpense";
 import TripDetails from "./pages/TripDetails";
+import AIPlanner from "./pages/AIPlanner";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -45,7 +46,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <TripDetails />
     </ProtectedRoute>
   }
-/>
+/>    
+    <Route
+      path="/ai-planner"
+      element={
+        <ProtectedRoute>
+          <AIPlanner />
+        </ProtectedRoute>
+      }
+    />
     </Routes>
   </BrowserRouter>
 );

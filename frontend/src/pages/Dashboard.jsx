@@ -215,6 +215,17 @@ const handleUpdate = async (trip) => {
           >
             Add Expense
           </Link>
+          {/* AI Planner */}
+<Link
+  to="/ai-planner"
+  className={
+    darkMode
+      ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
+      : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
+  }
+>
+  ✨ AI Trip Planner
+</Link>
 
           {/* Logout */}
           <button
