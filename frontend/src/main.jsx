@@ -16,6 +16,7 @@ import CreateTrip from "./pages/CreateTrip";
 import AddExpense from "./pages/AddExpense";
 import TripDetails from "./pages/TripDetails";
 import AIPlanner from "./pages/AIPlanner";
+import AIChatAssistant from "./components/AIChatAssistant";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -56,5 +57,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       }
     />
     </Routes>
+    {localStorage.getItem("token") && <AIChatAssistant />}
   </BrowserRouter>
 );
