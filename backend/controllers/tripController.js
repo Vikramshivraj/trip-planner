@@ -1,4 +1,25 @@
 const db = require("../config/db");
+const DESTINATION_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s,.'-]{1,59}$/;
+const UNSUPPORTED_DESTINATIONS = new Set(["mars", "moon", "jupiter", "saturn", "venus", "mercury", "uranus", "neptune", "pluto"]);
+
+const validateTrip = ({ trip_name, destination, start_date, end_date, budget }) => {
+  const cleanName = typeof trip_name === "string" ? trip_name.trim() : "";
+  const cleanDestination = typeof destination === "string" ? destination.trim() : "";
+  const numericBudget = Number(budget);
+  const start = new Date(start_date);
+  const end = new Date(end_date);
+
+  if (cleanName.length < 2 || cleanName.length > 80) return "Trip name must be between 2 and 80 characters.";
+  if (!DESTINATION_REGEX.test(cleanDestination)) return "Enter a valid destination using letters (for example: Goa or New Delhi).";
+  if (UNSUPPORTED_DESTINATIONS.has(cleanDestination.toLowerCase())) return "Please enter a real-world destination on Earth.";
+  if (!Number.isFinite(numericBudget) || numericBudget <= 0 || numericBudget > 100000000) return "Budget must be greater than 0 and within a reasonable range.";
+  if (!start_date || !end_date || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "Enter valid start and end dates.";
+  if (end < start) return "End date cannot be before start date.";
+  const durationDays = Math.floor((end - start) / 86400000) + 1;
+  if (durationDays > 30) return "Trip duration must be 30 days or less.";
+  return null;
+};
+
 
 const createTrip = (req, res) => {
   try {
@@ -11,6 +32,11 @@ const createTrip = (req, res) => {
       end_date,
       budget,
     } = req.body;
+
+    const validationError = validateTrip({ trip_name, destination, start_date, end_date, budget });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
 
     const query = `
       INSERT INTO trips

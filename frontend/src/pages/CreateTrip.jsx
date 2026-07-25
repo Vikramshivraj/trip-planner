@@ -23,21 +23,42 @@ const CreateTrip = () => {
   };
 
   const handleCreateTrip = async () => {
-
     try {
-
-      const today = new Date();
-
+      const destination = formData.destination.trim();
+      const destinationRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s,.'-]{1,59}$/;
+      const unsupported = ["mars", "moon", "jupiter", "saturn", "venus", "mercury", "uranus", "neptune", "pluto"];
+      const budget = Number(formData.budget);
       const start = new Date(formData.start_date);
-
       const end = new Date(formData.end_date);
 
-      if (end < start) {
-
-        alert("End date cannot be before start date");
-
+      if (formData.trip_name.trim().length < 2 || formData.trip_name.trim().length > 80) {
+        alert("Trip name must be between 2 and 80 characters");
         return;
-
+      }
+      if (!destinationRegex.test(destination)) {
+        alert("Enter a valid destination, for example Goa or New Delhi");
+        return;
+      }
+      if (unsupported.includes(destination.toLowerCase())) {
+        alert("Please enter a real-world destination on Earth");
+        return;
+      }
+      if (!Number.isFinite(budget) || budget <= 0 || budget > 100000000) {
+        alert("Enter a valid positive budget");
+        return;
+      }
+      if (!formData.start_date || !formData.end_date || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        alert("Enter valid start and end dates");
+        return;
+      }
+      if (end < start) {
+        alert("End date cannot be before start date");
+        return;
+      }
+      const durationDays = Math.floor((end - start) / 86400000) + 1;
+      if (durationDays > 30) {
+        alert("Trip duration must be 30 days or less");
+        return;
       }
 
       const token = localStorage.getItem("token");
@@ -63,10 +84,8 @@ const CreateTrip = () => {
       });
 
     } catch (error) {
-
       console.log(error);
-
-      alert("Trip Creation Failed");
+      alert(error.response?.data?.message || "Trip Creation Failed");
 
     }
 
@@ -122,6 +141,8 @@ const CreateTrip = () => {
             name="trip_name"
             placeholder="Trip Name"
             value={formData.trip_name}
+            minLength={2}
+            maxLength={80}
             onChange={handleChange}
             className={
               darkMode
@@ -135,6 +156,7 @@ const CreateTrip = () => {
             name="destination"
             placeholder="Destination"
             value={formData.destination}
+            maxLength={60}
             onChange={handleChange}
             className={
               darkMode
@@ -172,6 +194,8 @@ const CreateTrip = () => {
             name="budget"
             placeholder="Budget"
             value={formData.budget}
+            min="1"
+            max="100000000"
             onChange={handleChange}
             className={
               darkMode
