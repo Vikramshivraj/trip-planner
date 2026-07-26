@@ -4,7 +4,6 @@ import { FaGlobeAsia } from "react-icons/fa";
 import API from "../api/api";
 
 const Register = () => {
-
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -14,42 +13,83 @@ const Register = () => {
   });
 
   const handleChange = (e) => {
-
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-
   };
 
   const handleRegister = async () => {
+    // Clean the input before validation
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password;
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Name validation
+    if (!name) {
+      alert("Name is required");
+      return;
+    }
+
+    if (name.length < 2) {
+      alert("Name must be at least 2 characters long");
+      return;
+    }
+
+    if (name.length > 50) {
+      alert("Name must not exceed 50 characters");
+      return;
+    }
+
+    // Email validation
+    if (!email) {
+      alert("Email is required");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    // Password validation
+    if (!password) {
+      alert("Password is required");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters long");
+      return;
+    }
 
     try {
-
       const res = await API.post(
         "/auth/register",
-        formData
+        {
+          name,
+          email,
+          password,
+        }
       );
 
       alert(res.data.message);
 
       navigate("/");
-
     } catch (error) {
-
       console.log(error);
 
       alert(
         error.response?.data?.message ||
         "Registration Failed"
       );
-
     }
-
   };
 
   return (
-
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-purple-950 flex items-center justify-center px-4">
 
       <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
@@ -74,6 +114,7 @@ const Register = () => {
           value={formData.name}
           onChange={handleChange}
           placeholder="Enter Name"
+          autoComplete="name"
           className="w-full p-4 rounded-xl bg-zinc-900/80 border border-zinc-700 text-white outline-none mb-4 focus:border-purple-500 transition-all"
         />
 
@@ -83,6 +124,7 @@ const Register = () => {
           value={formData.email}
           onChange={handleChange}
           placeholder="Enter Email"
+          autoComplete="email"
           className="w-full p-4 rounded-xl bg-zinc-900/80 border border-zinc-700 text-white outline-none mb-4 focus:border-purple-500 transition-all"
         />
 
@@ -92,6 +134,7 @@ const Register = () => {
           value={formData.password}
           onChange={handleChange}
           placeholder="Enter Password"
+          autoComplete="new-password"
           className="w-full p-4 rounded-xl bg-zinc-900/80 border border-zinc-700 text-white outline-none mb-6 focus:border-purple-500 transition-all"
         />
 
@@ -111,15 +154,12 @@ const Register = () => {
           >
             Login
           </Link>
-
         </p>
 
       </div>
 
     </div>
-
   );
-
 };
 
 export default Register;

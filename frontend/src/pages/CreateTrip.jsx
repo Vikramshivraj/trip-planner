@@ -28,34 +28,74 @@ const CreateTrip = () => {
       const destinationRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s,.'-]{1,59}$/;
       const unsupported = ["mars", "moon", "jupiter", "saturn", "venus", "mercury", "uranus", "neptune", "pluto"];
       const budget = Number(formData.budget);
-      const start = new Date(formData.start_date);
-      const end = new Date(formData.end_date);
+
+      // Date must be YYYY-MM-DD with exactly a 4-digit year
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
       if (formData.trip_name.trim().length < 2 || formData.trip_name.trim().length > 80) {
         alert("Trip name must be between 2 and 80 characters");
         return;
       }
+
       if (!destinationRegex.test(destination)) {
         alert("Enter a valid destination, for example Goa or New Delhi");
         return;
       }
+
       if (unsupported.includes(destination.toLowerCase())) {
         alert("Please enter a real-world destination on Earth");
         return;
       }
+
       if (!Number.isFinite(budget) || budget <= 0 || budget > 100000000) {
         alert("Enter a valid positive budget");
         return;
       }
-      if (!formData.start_date || !formData.end_date || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+
+      if (!formData.start_date || !formData.end_date) {
         alert("Enter valid start and end dates");
         return;
       }
+
+      if (
+        !dateRegex.test(formData.start_date) ||
+        !dateRegex.test(formData.end_date)
+      ) {
+        alert("Year must contain exactly 4 digits");
+        return;
+      }
+
+      const startYear = Number(formData.start_date.split("-")[0]);
+      const endYear = Number(formData.end_date.split("-")[0]);
+
+      if (
+        startYear < 1000 ||
+        startYear > 9999 ||
+        endYear < 1000 ||
+        endYear > 9999
+      ) {
+        alert("Year must contain exactly 4 digits");
+        return;
+      }
+
+      const start = new Date(formData.start_date);
+      const end = new Date(formData.end_date);
+
+      if (
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())
+      ) {
+        alert("Enter valid start and end dates");
+        return;
+      }
+
       if (end < start) {
         alert("End date cannot be before start date");
         return;
       }
+
       const durationDays = Math.floor((end - start) / 86400000) + 1;
+
       if (durationDays > 30) {
         alert("Trip duration must be 30 days or less");
         return;
@@ -86,7 +126,6 @@ const CreateTrip = () => {
     } catch (error) {
       console.log(error);
       alert(error.response?.data?.message || "Trip Creation Failed");
-
     }
 
   };
@@ -169,6 +208,8 @@ const CreateTrip = () => {
             type="date"
             name="start_date"
             value={formData.start_date}
+            min="1000-01-01"
+            max="9999-12-31"
             onChange={handleChange}
             className={
               darkMode
@@ -181,6 +222,8 @@ const CreateTrip = () => {
             type="date"
             name="end_date"
             value={formData.end_date}
+            min={formData.start_date || "1000-01-01"}
+            max="9999-12-31"
             onChange={handleChange}
             className={
               darkMode

@@ -4,7 +4,6 @@ import { FaPlaneDeparture } from "react-icons/fa";
 import API from "../api/api";
 
 const Login = () => {
-
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -20,11 +19,34 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
-    try {
+    const email = formData.email.trim().toLowerCase();
+    const password = formData.password;
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Email validation
+    if (!email) {
+      alert("Email is required");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    // Password validation
+    if (!password) {
+      alert("Password is required");
+      return;
+    }
+    try {
       const res = await API.post(
         "/auth/login",
-        formData
+        {
+          email,
+          password,
+        }
       );
 
       localStorage.setItem(
@@ -35,11 +57,13 @@ const Login = () => {
       alert(res.data.message);
 
       navigate("/dashboard");
-
     } catch (error) {
       console.log(error);
 
-      alert("Login Failed");
+      alert(
+        error.response?.data?.message ||
+        "Login Failed"
+      );
     }
   };
 
@@ -65,16 +89,20 @@ const Login = () => {
         <input
           type="email"
           name="email"
+          value={formData.email}
           placeholder="Enter Email"
           onChange={handleChange}
+          autoComplete="email"
           className="w-full p-4 rounded-xl bg-zinc-900/80 border border-zinc-700 text-white outline-none mb-4"
         />
 
         <input
           type="password"
           name="password"
+          value={formData.password}
           placeholder="Enter Password"
           onChange={handleChange}
+          autoComplete="current-password"
           className="w-full p-4 rounded-xl bg-zinc-900/80 border border-zinc-700 text-white outline-none mb-6"
         />
 
@@ -87,6 +115,7 @@ const Login = () => {
 
         <p className="text-zinc-400 text-center mt-6">
           Don’t have an account?
+
           <Link
             to="/register"
             className="text-blue-400 ml-1 hover:underline"
