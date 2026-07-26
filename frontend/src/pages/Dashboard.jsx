@@ -10,31 +10,92 @@ import { Link, useNavigate } from "react-router-dom";
 
 import API from "../api/api";
 
-const Dashboard = () => {
+import AIChatAssistant from "../components/AIChatAssistant";
 
+const Dashboard = () => {
   const navigate = useNavigate();
 
   const [trips, setTrips] = useState([]);
-
   const [totalExpenses, setTotalExpenses] = useState(0);
-
   const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
-
-  fetchTrips();
-  fetchTotalExpenses();
-
-}, []);
+    fetchTrips();
+    fetchTotalExpenses();
+  }, []);
 
   const fetchTrips = async () => {
-
     try {
-
       const token = localStorage.getItem("token");
 
-      const res = await API.get(
-        "/trips",
+      const res = await API.get("/trips", {
+        headers: {
+          authorization: token,
+        },
+      });
+
+      setTrips(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchTotalExpenses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await API.get("/trips/total-expenses", {
+        headers: {
+          authorization: token,
+        },
+      });
+
+      setTotalExpenses(res.data.totalExpenses);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await API.delete(`/trips/${id}`, {
+        headers: {
+          authorization: token,
+        },
+      });
+
+      alert(res.data.message);
+
+      fetchTrips();
+      fetchTotalExpenses();
+    } catch (error) {
+      console.log(error);
+      alert("Delete Failed");
+    }
+  };
+
+  const handleUpdate = async (trip) => {
+    const newName = prompt(
+      "Enter New Trip Name",
+      trip.trip_name
+    );
+
+    if (!newName) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const updatedTrip = {
+        trip_name: newName,
+        destination: trip.destination,
+        budget: trip.budget,
+      };
+
+      const res = await API.put(
+        `/trips/${trip.id}`,
+        updatedTrip,
         {
           headers: {
             authorization: token,
@@ -42,145 +103,43 @@ const Dashboard = () => {
         }
       );
 
-      setTrips(res.data);
+      alert(res.data.message);
 
+      fetchTrips();
     } catch (error) {
-
       console.log(error);
-
+      alert("Update Failed");
     }
   };
-  const fetchTotalExpenses = async () => {
 
-  try {
-
-    const token = localStorage.getItem("token");
-
-    const res = await API.get(
-      "/trips/total-expenses",
-      {
-        headers: {
-          authorization: token,
-        },
-      }
-    );
-
-    setTotalExpenses(
-      res.data.totalExpenses
-    );
-
-  } catch (error) {
-
-    console.log(error);
-
-  }
-
-};
-   
-const handleDelete = async (id) => {
-
-  try {
-
-    const token = localStorage.getItem("token");
-
-    const res = await API.delete(
-      `/trips/${id}`,
-      {
-        headers: {
-          authorization: token,
-        },
-      }
-    );
-
-    alert(res.data.message);
-
-fetchTrips();
-fetchTotalExpenses();
-
-  } catch (error) {
-
-    console.log(error);
-
-    alert("Delete Failed");
-
-  }
-};
-const handleUpdate = async (trip) => {
-
-  const newName = prompt(
-    "Enter New Trip Name",
-    trip.trip_name
-  );
-
-  if (!newName) return;
-
-  try {
-
-    const token = localStorage.getItem("token");
-
-    const updatedTrip = {
-
-      trip_name: newName,
-      destination: trip.destination,
-      budget: trip.budget,
-
-    };
-
-    const res = await API.put(
-      `/trips/${trip.id}`,
-      updatedTrip,
-      {
-        headers: {
-          authorization: token,
-        },
-      }
-    );
-
-    alert(res.data.message);
-
-    fetchTrips();
-
-  } catch (error) {
-
-    console.log(error);
-
-    alert("Update Failed");
-
-  }
-};
-  // logout
+  // Logout
   const handleLogout = () => {
-
     localStorage.removeItem("token");
-
     navigate("/");
-
   };
 
-  // total budget
+  // Total Budget
   const totalBudget = trips.reduce(
-    (acc, trip) =>
-      acc + Number(trip.budget),
+    (acc, trip) => acc + Number(trip.budget),
     0
   );
 
   return (
     <div
-  className={
-    darkMode
-      ? "min-h-screen bg-black text-white flex"
-      : "min-h-screen bg-gray-100 text-black flex"
-  }
->
-
+      className={
+        darkMode
+          ? "min-h-screen bg-black text-white flex"
+          : "min-h-screen bg-gray-100 text-black flex"
+      }
+    >
       {/* Sidebar */}
-    <div
-  className={
-    darkMode
-      ? "w-[250px] bg-zinc-950 border-r border-zinc-800 p-6"
-      : "w-[250px] bg-white border-r border-gray-300 p-6"
-  }
->
+      <div
+        className={
+          darkMode
+            ? "w-[250px] bg-zinc-950 border-r border-zinc-800 p-6"
+            : "w-[250px] bg-white border-r border-gray-300 p-6"
+        }
+      >
         <h1 className="text-3xl font-bold mb-10 text-blue-500">
           TripPlanner
         </h1>
@@ -196,10 +155,10 @@ const handleUpdate = async (trip) => {
           <Link
             to="/create-trip"
             className={
-  darkMode
-    ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
-    : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
-}
+              darkMode
+                ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
+                : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
+            }
           >
             Create Trip
           </Link>
@@ -208,24 +167,25 @@ const handleUpdate = async (trip) => {
           <Link
             to="/add-expense"
             className={
-  darkMode
-    ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
-    : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
-}
+              darkMode
+                ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
+                : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
+            }
           >
             Add Expense
           </Link>
+
           {/* AI Planner */}
-<Link
-  to="/ai-planner"
-  className={
-    darkMode
-      ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
-      : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
-  }
->
-  ✨ AI Trip Planner
-</Link>
+          <Link
+            to="/ai-planner"
+            className={
+              darkMode
+                ? "bg-zinc-900 p-4 rounded-xl hover:bg-zinc-800 transition-all"
+                : "bg-gray-200 p-4 rounded-xl hover:bg-gray-300 transition-all"
+            }
+          >
+            ✨ AI Trip Planner
+          </Link>
 
           {/* Logout */}
           <button
@@ -235,25 +195,25 @@ const handleUpdate = async (trip) => {
             Logout
           </button>
 
+          {/* Dark / Light Mode */}
           <button
-  onClick={() => setDarkMode(!darkMode)}
-  className="bg-yellow-500 hover:bg-yellow-600 transition-all p-4 rounded-xl text-left"
->
-  {darkMode ? "Light Mode ☀️" : "Dark Mode 🌙"}
-</button>
+            onClick={() => setDarkMode(!darkMode)}
+            className="bg-yellow-500 hover:bg-yellow-600 transition-all p-4 rounded-xl text-left"
+          >
+            {darkMode ? "Light Mode ☀️" : "Dark Mode 🌙"}
+          </button>
 
         </div>
-
       </div>
 
       {/* Main */}
-        <div
-  className={
-    darkMode
-      ? "flex-1 p-8 bg-gradient-to-br from-black via-zinc-950 to-zinc-900 overflow-auto"
-      : "flex-1 p-8 bg-gradient-to-br from-gray-100 via-white to-gray-200 overflow-auto"
-  }
->
+      <div
+        className={
+          darkMode
+            ? "flex-1 p-8 bg-gradient-to-br from-black via-zinc-950 to-zinc-900 overflow-auto"
+            : "flex-1 p-8 bg-gradient-to-br from-gray-100 via-white to-gray-200 overflow-auto"
+        }
+      >
         <h1 className="text-5xl font-bold mb-2">
           Travel Dashboard ✈️
         </h1>
@@ -314,103 +274,112 @@ const handleUpdate = async (trip) => {
 
         {/* Trips */}
         <div
-  className={
-    darkMode
-      ? "bg-zinc-900/70 border border-zinc-800 rounded-3xl p-6"
-      : "bg-white border border-gray-300 rounded-3xl p-6 shadow-lg"
-  }
->
+          className={
+            darkMode
+              ? "bg-zinc-900/70 border border-zinc-800 rounded-3xl p-6"
+              : "bg-white border border-gray-300 rounded-3xl p-6 shadow-lg"
+          }
+        >
           <h2
-  className={
-    darkMode
-      ? "text-2xl font-bold mb-6"
-      : "text-2xl font-bold mb-6 text-black"
-  }
->
+            className={
+              darkMode
+                ? "text-2xl font-bold mb-6"
+                : "text-2xl font-bold mb-6 text-black"
+            }
+          >
             Your Trips
           </h2>
 
           <div className="space-y-4">
 
-            {
-              trips.map((trip) => (
+            {trips.map((trip) => (
 
-                <div
-                  key={trip.id}
-                  className={
-  darkMode
-    ? "bg-zinc-800 p-5 rounded-2xl flex justify-between items-center"
-    : "bg-gray-100 p-5 rounded-2xl flex justify-between items-center border border-gray-300"
-}                >
+              <div
+                key={trip.id}
+                className={
+                  darkMode
+                    ? "bg-zinc-800 p-5 rounded-2xl flex justify-between items-center"
+                    : "bg-gray-100 p-5 rounded-2xl flex justify-between items-center border border-gray-300"
+                }
+              >
 
-                  <div>
+                <div>
 
-                    <h3 className="font-semibold text-xl">
-                      {trip.trip_name}
-                    </h3>
+                  <h3 className="font-semibold text-xl">
+                    {trip.trip_name}
+                  </h3>
 
-                    <p className={darkMode ? "text-zinc-400" : "text-gray-600"}>
-                      {trip.destination}
-                    </p>
+                  <p
+                    className={
+                      darkMode
+                        ? "text-zinc-400"
+                        : "text-gray-600"
+                    }
+                  >
+                    {trip.destination}
+                  </p>
 
-                    <p className="text-zinc-500 mt-1">
-                      Budget: ₹{trip.budget}
-                    </p>
+                  <p className="text-zinc-500 mt-1">
+                    Budget: ₹{trip.budget}
+                  </p>
 
-                  </div>
+                </div>
 
-                 <div className="flex gap-3">
+                <div className="flex gap-3">
 
-  {/* View */}
- <button
-  onClick={() => navigate(`/trip/${trip.id}`)}
-  className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
->
-  View
-</button>
+                  {/* View */}
+                  <button
+                    onClick={() =>
+                      navigate(`/trip/${trip.id}`)
+                    }
+                    className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    View
+                  </button>
 
-  {/* Edit */}
-  <button
-    onClick={() => handleUpdate(trip)}
-    className="bg-yellow-500 px-4 py-2 rounded-lg hover:bg-yellow-600"
-  >
-    Edit
-  </button>
+                  {/* Edit */}
+                  <button
+                    onClick={() =>
+                      handleUpdate(trip)
+                    }
+                    className="bg-yellow-500 px-4 py-2 rounded-lg hover:bg-yellow-600"
+                  >
+                    Edit
+                  </button>
 
-  {/* Delete */}
-  <button
-  onClick={() => {
+                  {/* Delete */}
+                  <button
+                    onClick={() => {
+                      const confirmDelete =
+                        window.confirm(
+                          "Are you sure you want to delete this trip?"
+                        );
 
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this trip?"
-    );
+                      if (confirmDelete) {
+                        handleDelete(trip.id);
+                      }
+                    }}
+                    className="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
 
-    if (confirmDelete) {
+                </div>
 
-      handleDelete(trip.id);
+              </div>
 
-    }
-
-  }}
-  className="bg-red-600 px-4 py-2 rounded-lg hover:bg-red-700"
->
-  Delete
-</button>
-
-</div>
-
-
-</div>
-
-
-              ))
-            }
+            ))}
 
           </div>
-
         </div>
 
       </div>
+
+      {/* ========================================= */}
+      {/* AI CHAT ASSISTANT - DASHBOARD ONLY */}
+      {/* ========================================= */}
+
+      <AIChatAssistant />
 
     </div>
   );
